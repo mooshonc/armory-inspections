@@ -459,6 +459,136 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Dialog Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-section {
+            margin-bottom: 24px;
+        }
+
+        .modal-section h3 {
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .modal-field {
+            padding: 12px;
+            background: var(--bg-input);
+            border-radius: 8px;
+        }
+
+        .modal-field-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .modal-field-value {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .modal-signature {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-modal-delete {
+            flex: 1;
+            padding: 12px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-modal-delete:hover {
+            background: #b91c1c;
+        }
     </style>
 </head>
 <body>
@@ -484,6 +614,7 @@
             const [activeTab, setActiveTab] = useState('new');
             const [inspections, setInspections] = useState([]);
             const [toast, setToast] = useState('');
+            const [selectedInspection, setSelectedInspection] = useState(null);
 
             // New inspection form
             const [newInspection, setNewInspection] = useState({
@@ -898,7 +1029,12 @@
                                             {inspections
                                                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                                                 .map(insp => (
-                                            <div key={insp.id} className="inspection-item">
+                                            <div 
+                                                key={insp.id} 
+                                                className="inspection-item"
+                                                onClick={() => setSelectedInspection(insp)}
+                                                style={{cursor: 'pointer'}}
+                                            >
                                                 <div className="inspection-item-header">
                                                     <div className="inspection-item-date">
                                                         {formatDate(insp.date)} | {insp.time}
@@ -925,14 +1061,6 @@
                                                         הערות: {insp.notes}
                                                     </div>
                                                 )}
-                                                <div className="inspection-actions">
-                                                    <button 
-                                                        className="btn-small btn-delete"
-                                                        onClick={() => deleteInspection(insp.id)}
-                                                    >
-                                                        🗑️ מחק
-                                                    </button>
-                                                </div>
                                             </div>
                                         ))}
                                         </div>
@@ -1084,6 +1212,119 @@
                     )}
 
                     {toast && <div className="toast">{toast}</div>}
+
+                    {selectedInspection && (
+                        <div className="modal-overlay" onClick={() => setSelectedInspection(null)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h2>פרטי ביקורת</h2>
+                                    <button className="modal-close" onClick={() => setSelectedInspection(null)}>×</button>
+                                </div>
+                                
+                                <div className="modal-body">
+                                    <div className="modal-section">
+                                        <h3>תאריך ושעה</h3>
+                                        <div className="modal-grid">
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">תאריך</div>
+                                                <div className="modal-field-value">{formatDate(selectedInspection.date)}</div>
+                                            </div>
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">שעה</div>
+                                                <div className="modal-field-value">{selectedInspection.time}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="modal-section">
+                                        <h3>אזעקה</h3>
+                                        <div className="modal-grid">
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">דלת</div>
+                                                <div className={`modal-field-value ${getStatusColor(selectedInspection.door)}`}>
+                                                    {selectedInspection.door}
+                                                </div>
+                                            </div>
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">חלונות</div>
+                                                <div className={`modal-field-value ${getStatusColor(selectedInspection.windows)}`}>
+                                                    {selectedInspection.windows}
+                                                </div>
+                                            </div>
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">צופר ומערכת כריזה</div>
+                                                <div className={`modal-field-value ${getStatusColor(selectedInspection.siren)}`}>
+                                                    {selectedInspection.siren}
+                                                </div>
+                                            </div>
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">חייגן אוטומטי</div>
+                                                <div className={`modal-field-value ${getStatusColor(selectedInspection.dialer)}`}>
+                                                    {selectedInspection.dialer}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="modal-section">
+                                        <h3>מצלמה</h3>
+                                        <div className="modal-field">
+                                            <div className="modal-field-label">שידור תקין לחמ"ל</div>
+                                            <div className={`modal-field-value ${getStatusColor(selectedInspection.camera)}`}>
+                                                {selectedInspection.camera}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {selectedInspection.notes && (
+                                        <div className="modal-section">
+                                            <h3>הערות</h3>
+                                            <div className="modal-field">
+                                                <div className="modal-field-value">{selectedInspection.notes}</div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="modal-section">
+                                        <h3>מבקר</h3>
+                                        <div className="modal-grid">
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">שם ומשפחה</div>
+                                                <div className="modal-field-value">{selectedInspection.inspectorName}</div>
+                                            </div>
+                                            <div className="modal-field">
+                                                <div className="modal-field-label">מספר אישי</div>
+                                                <div className="modal-field-value">{selectedInspection.inspectorId}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {selectedInspection.signature && (
+                                        <div className="modal-section">
+                                            <h3>חתימה</h3>
+                                            <img 
+                                                src={selectedInspection.signature} 
+                                                alt="חתימה" 
+                                                className="modal-signature"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="modal-footer">
+                                    <button 
+                                        className="btn-modal-delete"
+                                        onClick={() => {
+                                            deleteInspection(selectedInspection.id);
+                                            setSelectedInspection(null);
+                                        }}
+                                    >
+                                        🗑️ מחק ביקורת
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
