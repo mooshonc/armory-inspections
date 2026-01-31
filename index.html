@@ -396,6 +396,17 @@
             const [showAddModal, setShowAddModal] = useState(false);
             const [newSettlementName, setNewSettlementName] = useState('');
             const [toast, setToast] = useState('');
+            const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+            // Capture install prompt
+            useEffect(() => {
+                const handler = (e) => {
+                    e.preventDefault();
+                    setDeferredPrompt(e);
+                };
+                window.addEventListener('beforeinstallprompt', handler);
+                return () => window.removeEventListener('beforeinstallprompt', handler);
+            }, []);
 
             // Load settlements from localStorage
             useEffect(() => {
@@ -414,6 +425,24 @@
                     localStorage.setItem('settlements', JSON.stringify(defaultSettlements));
                 }
             }, []);
+
+            const handleInstall = async () => {
+                if (!deferredPrompt) {
+                    showToast('ההתקנה זמינה רק בדפדפנים נתמכים');
+                    return;
+                }
+                
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    showToast('✅ האפליקציה הותקנה!');
+                } else {
+                    showToast('ההתקנה בוטלה');
+                }
+                
+                setDeferredPrompt(null);
+            };
 
             const showToast = (message) => {
                 setToast(message);
@@ -502,6 +531,33 @@
                         <div className="header-content">
                             <h1>🛡️ ביקורות נשקייה</h1>
                             <div className="header-subtitle">מערכת ניהול ביקורות מאובטחת</div>
+                            {deferredPrompt && (
+                                <button
+                                    onClick={handleInstall}
+                                    style={{
+                                        marginTop: '16px',
+                                        padding: '12px 24px',
+                                        background: 'var(--accent)',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        color: 'white',
+                                        fontSize: '1rem',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        margin: '16px auto 0',
+                                        boxShadow: 'var(--shadow)',
+                                        transition: 'all 0.3s'
+                                    }}
+                                    onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                                    onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+                                >
+                                    📲 התקן אפליקציה
+                                </button>
+                            )}
                         </div>
                     </div>
 
